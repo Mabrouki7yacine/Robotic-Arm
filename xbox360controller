@@ -1,0 +1,99 @@
+from flask import Flask, jsonify
+import pygame
+import threading
+import time
+
+app = Flask(__name__)
+
+arm = {
+    "base": 0,
+    "axe_0": 90,
+    "axe_1": 90,
+    "axe_2": 90,
+    "gripper": 90,
+}
+
+@app.route('/arm', methods=['GET'])
+def get_arm_state():
+    return jsonify(arm), 200
+
+def handle_controller():
+    pygame.init()
+    controller = pygame.joystick.Joystick(0)
+    controller.init()
+    print(f"Controller Name: {controller.get_name()}")
+
+    button_states = {
+        "axe_0_increase": False,
+        "axe_0_decrease": False,
+        "axe_1_increase": False,
+        "axe_1_decrease": False,
+        "axe_2_increase": False,
+        "axe_2_decrease": False,
+        "gripper_increase": False,
+        "gripper_decrease": False,
+    }
+
+    def update_arm():
+        if button_states["axe_0_increase"]:
+            arm["axe_0"] = min(arm["axe_0"] + 0.5, 180)
+        if button_states["axe_0_decrease"]:
+            arm["axe_0"] = max(arm["axe_0"] - 0.5, 0)
+        if button_states["axe_1_increase"]:
+            arm["axe_1"] = min(arm["axe_1"] + 1, 180)
+        if button_states["axe_1_decrease"]:
+            arm["axe_1"] = max(arm["axe_1"] - 1, 0)
+        if button_states["axe_2_increase"]:
+            arm["axe_2"] = min(arm["axe_2"] + 3, 180)
+        if button_states["axe_2_decrease"]:
+            arm["axe_2"] = max(arm["axe_2"] - 3, 0)
+        if button_states["gripper_increase"]:
+            arm["gripper"] = min(arm["gripper"] + 7, 80)
+        if button_states["gripper_decrease"]:
+            arm["gripper"] = max(arm["gripper"] - 7, 0)
+
+    while True:
+        pygame.event.pump()  # Process any events
+
+        # Read axes
+        axe0 = int(controller.get_axis(5) * 10)
+        axe1 = int(controller.get_axis(2) * 10)
+
+        # Update arm state based on joystick input
+        arm["base"] = 0
+        if axe0 > 3:
+            arm["base"] = 1
+        elif axe1 > 3:
+            arm["base"] = -1
+
+        # Handle button states
+        for event in pygame.event.get():
+            if event.type == pygame.JOYBUTTONDOWN or event.type == pygame.JOYBUTTONUP:
+                state = event.type == pygame.JOYBUTTONDOWN
+                if event.button == 0:  # A
+                    button_states["axe_1_decrease"] = state
+                elif event.button == 3:  # Y
+                    button_states["axe_1_increase"] = state
+                elif event.button == 1:  # B
+                    button_states["axe_0_decrease"] = state
+                elif event.button == 2:  # X
+                    button_states["axe_0_increase"] = state
+                elif event.button == 4:  # RL
+                    button_states["axe_2_decrease"] = state
+                elif event.button == 5:  # RB
+                    button_states["axe_2_increase"] = state
+                elif event.button == 6:  # Back
+                    button_states["gripper_increase"] = state
+                elif event.button == 7:  # Start
+                    button_states["gripper_decrease"] = state
+
+        update_arm()
+        #print(arm)
+        time.sleep(0.01)  # Adjust the delay as needed for smoother control
+
+if __name__ == '__main__':
+    controller_thread = threading.Thread(target=handle_controller)
+    controller_thread.daemon = True
+    controller_thread.start()
+
+    app.run(host='0.0.0.0', port=3000, threaded=True)  # Run Flask in threaded mode
