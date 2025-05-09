@@ -7,34 +7,17 @@
 #include "servo.h"
 
 #define TAG "servo"
+#define TIMER_NUM 0
 
 inline int usToTicks(int usec){
     return (usec * 8192)/20000; // Adjusted for 13-bit resolution (2^13 = 8192)
 }
 
 void attach_servo(int servo, int pin) {
-    int timer_num;
-
-    switch (servo) {
-        case 0:
-        case 1:
-            timer_num = 0;
-            break;
-        case 2:
-        case 3:
-            timer_num = 1;
-            break;
-        case 4:
-            timer_num = 2;
-            break;
-        default:
-            ESP_LOGE(TAG, "Invalid servo index");
-            return;
-    }
     
     ledc_timer_config_t ledc_timer = {
         .speed_mode       = LEDC_MODE,
-        .timer_num        = timer_num,
+        .timer_num        = TIMER_NUM,
         .duty_resolution  = LEDC_DUTY_RES,
         .freq_hz          = LEDC_FREQUENCY,
         .clk_cfg          = LEDC_AUTO_CLK
@@ -44,7 +27,7 @@ void attach_servo(int servo, int pin) {
     ledc_channel_config_t ledc_channel = {
         .speed_mode     = LEDC_MODE,
         .channel        = servo,
-        .timer_sel      = timer_num,
+        .timer_sel      = TIMER_NUM,
         .intr_type      = LEDC_INTR_DISABLE,
         .gpio_num       = pin,
         .duty           = 0, // Set duty to 0%
