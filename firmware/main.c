@@ -48,10 +48,6 @@ QueueHandle_t queue;
 int32_t message[2];
 
 void servo_control_task(){
-    //first  joint: 095 middle
-    //second joint: 085 middle
-    //first  joint: 005 max
-    //second joint: 175 max
     while (1) {
         if(xQueueReceive(queue, &(message), 0)){
             ESP_LOGI(TAG, "Moving servo 0 to %d",(int) message[0]);
@@ -66,22 +62,7 @@ void servo_control_task(){
             my_delay(500);
         }else{
             my_delay(50);  
-        }/*
-        ESP_LOGI(TAG, "Moving servo 0 to 120°");
-        go_smooth(axe_0, 90);
-        my_delay(1000);
-
-        ESP_LOGI(TAG, "Moving servo 1 to 60°");
-        go_smooth(axe_1, 0);
-        my_delay(1000);
-
-        ESP_LOGI(TAG, "Moving servo 0 to 120°");
-        go_smooth(axe_0, 120);
-        my_delay(1000);
-
-        ESP_LOGI(TAG, "Moving servo 1 to 60°");
-        go_smooth(axe_1, 90);
-        my_delay(1000); */
+        }
     }
 }
 
