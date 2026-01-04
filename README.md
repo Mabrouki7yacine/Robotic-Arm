@@ -14,9 +14,3 @@ Python (matplotlib, tkinter, socket)
 C (ESP-IDF for ESP32)
 Wi-Fi TCP communication
 Servo control logic with safety limits
-
-Applications
-Educational robotics
-Inverse kinematics experimentation
-Wireless robotic arm prototypes
-Embedded systems projects
